@@ -1,0 +1,111 @@
+
+<launch>
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find rover_description)/worlds/terrain.world"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+<!-- Set the arguments for multiple markers -->
+  <arg name="marker1_x" default="1"/>
+  <arg name="marker1_y" default="0"/>
+  <arg name="marker1_z" default="0.5"/>
+  <arg name="marker1_roll" default="0"/>
+  <arg name="marker1_pitch" default="0"/>
+  <arg name="marker1_yaw" default="1"/>
+  <arg name="marker1_name" default="arucoMarker1"/>
+  <arg name="marker1_file" default="arucoMarker0.dae"/>
+
+  <arg name="marker2_x" default="5"/>
+  <arg name="marker2_y" default="2"/>
+  <arg name="marker2_z" default="0.5"/>
+  <arg name="marker2_roll" default="0"/>
+  <arg name="marker2_pitch" default="0"/>
+  <arg name="marker2_yaw" default="1"/>
+  <arg name="marker2_name" default="arucoMarker2"/>
+  <arg name="marker2_file" default="arucoMarker1.dae"/>
+
+  <arg name="marker3_x" default="7"/>
+  <arg name="marker3_y" default="-2"/>
+  <arg name="marker3_z" default="0.5"/>
+  <arg name="marker3_roll" default="0"/>
+  <arg name="marker3_pitch" default="0"/>
+  <arg name="marker3_yaw" default="1"/>
+  <arg name="marker3_name" default="arucoMarker3"/>
+  <arg name="marker3_file" default="arucoMarker2.dae"/>
+
+
+    <!-- Include the other launch file and pass arguments -->
+<!-- Include multiple instances of the arucoSpawner.launch file -->
+  <arg name="rviz_config" default="$(find rover_description)/rviz/rviz_image.rviz"/>
+  <include file="$(find aruco_sim_rover)/launch/arucoSpawner.launch">
+    <arg name="x" value="$(arg marker1_x)"/>
+    <arg name="y" value="$(arg marker1_y)"/>
+    <arg name="z" value="$(arg marker1_z)"/>
+    <arg name="roll" value="$(arg marker1_roll)"/>
+    <arg name="pitch" value="$(arg marker1_pitch)"/>
+    <arg name="yaw" value="$(arg marker1_yaw)"/>
+    <arg name="robot_name" value="$(arg marker1_name)"/>
+    <arg name="node_name" value="urdf_spawner_marker1"/>
+    <arg name="model_name" value="$(arg marker1_name)"/>
+    <arg name="file_name" value="$(arg marker1_file)"/>
+  </include>
+
+  <include file="$(find aruco_sim_rover)/launch/arucoSpawner.launch">
+    <arg name="x" value="$(arg marker2_x)"/>
+    <arg name="y" value="$(arg marker2_y)"/>
+    <arg name="z" value="$(arg marker2_z)"/>
+    <arg name="roll" value="$(arg marker2_roll)"/>
+    <arg name="pitch" value="$(arg marker2_pitch)"/>
+    <arg name="yaw" value="$(arg marker2_yaw)"/>
+    <arg name="robot_name" value="$(arg marker2_name)"/>
+    <arg name="node_name" value="urdf_spawner_marker2"/>
+    <arg name="model_name" value="$(arg marker2_name)"/>
+    <arg name="file_name" value="$(arg marker2_file)"/>
+  </include>
+
+  <include file="$(find aruco_sim_rover)/launch/arucoSpawner.launch">
+    <arg name="x" value="$(arg marker3_x)"/>
+    <arg name="y" value="$(arg marker3_y)"/>
+    <arg name="z" value="$(arg marker3_z)"/>
+    <arg name="roll" value="$(arg marker3_roll)"/>
+    <arg name="pitch" value="$(arg marker3_pitch)"/>
+    <arg name="yaw" value="$(arg marker3_yaw)"/>
+    <arg name="robot_name" value="$(arg marker3_name)"/>
+    <arg name="node_name" value="urdf_spawner_marker3"/>
+    <arg name="model_name" value="$(arg marker3_name)"/>
+    <arg name="file_name" value="$(arg marker3_file)"/>
+  </include>
+  <!-- <node
+    name="tf_footprint_base"
+    pkg="tf"
+    type="static_transform_publisher"
+    args="0 0 0 0 0 0 base_link base_footprint 40" /> -->
+  <node
+    name="spawn_model"
+    pkg="gazebo_ros"
+    type="spawn_model"
+    args="-file $(find rover_description)/urdf/rover_description.urdf -urdf -model mars_rover"
+    output="screen" />
+  <node
+    name="fake_joint_calibration"
+    pkg="rostopic"
+    type="rostopic"
+    args="pub /calibrated std_msgs/Bool true" />
+  
+ <node name="aruco_detector" pkg="marker_detection_rover" type="find_between.py" output="screen" />
+
+    <!-- Launch RViz -->
+ <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rviz_config)" output="screen"/>
+
+    <!-- Load URDF -->
+  <param
+    name="robot_description"
+    textfile="$(find rover_description)/urdf/rover_description.urdf" />
+
+  <include file="$(find rover_control)/launch/control.launch"/>
+  <include file="$(find rover_control)/launch/teleop.launch"/>
+
+</launch>
